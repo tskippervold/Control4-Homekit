@@ -9,7 +9,11 @@ import (
 )
 
 func (d Control4Device) ClientSetOn(isOn bool) {
-	fmt.Println("ClientSetOn")
+	if isOn {
+		d.ClientSetBrightness(100)
+	} else {
+		d.ClientSetBrightness(0)
+	}
 }
 
 func (d Control4Device) ClientSetBrightness(val int) {

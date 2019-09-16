@@ -47,7 +47,6 @@ func LoadControl4Devices(pathToJSON string) ([]*Control4Device, error) {
 }
 
 func (d Control4Device) HomekitAccessory() (*accessory.Accessory, error) {
-
 	info := accessory.Info{
 		Name: d.Name,
 	}

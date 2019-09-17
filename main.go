@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	c4Devices, err := models.LoadControl4Devices("_c4devices.json")
+	c4Devices, err := models.LoadControl4Devices("./_c4devices.json")
 	if err != nil {
 		panic(err)
 	}

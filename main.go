@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/tskippervold/control4-homekit/utils"
+
 	"github.com/brutella/hc"
 	"github.com/brutella/hc/accessory"
 	"github.com/tskippervold/control4-homekit/control4"
@@ -10,29 +12,37 @@ import (
 )
 
 func main() {
+	utils.ConfigureReportingEngine()
+
 	c4Devices, err := models.LoadControl4Devices("./_c4devices.json")
 	if err != nil {
+		utils.ReportSync(err)
 		panic(err)
 	}
 
 	var accessories []*accessory.Accessory
 	for _, d := range c4Devices {
+		var acc *accessory.Accessory
+		var err error
+
 		switch d.Service {
 		case control4.Dimmer, control4.Light:
 			fmt.Println("Dimmer or light")
-			accessories = append(accessories, d.SetupLight())
+			acc, err = d.SetupLight()
 
 		case control4.MotionSensor:
 			fmt.Println("Motion sensor")
-			accessories = append(accessories, d.SetupMotionSensor())
+			acc, err = d.SetupMotionSensor()
 
 		case control4.Thermostat:
 			fmt.Println("Thermostat")
+			acc, err = d.SetupThermostat()
 
 		default:
-			err := fmt.Errorf("Unsupported Control4 device: %+v", d)
-			fmt.Println(err)
+			err = fmt.Errorf("Unsupported Control4 device: %+v", d)
 		}
+
+		accessories = append(accessories, acc)
 	}
 
 	info := accessory.Info{

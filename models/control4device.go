@@ -75,7 +75,7 @@ func (d *Control4Device) hapAccessoryInfo() accessory.Info {
 	}
 }
 
-func (d *Control4Device) SetupLight() *accessory.Accessory {
+func (d *Control4Device) SetupLight() (*accessory.Accessory, error) {
 	light := Control4Light{*d, accessory.NewLightbulb(d.hapAccessoryInfo())}
 
 	light.HAPDevice.OnIdentify(light.ClientIdentify)
@@ -88,15 +88,15 @@ func (d *Control4Device) SetupLight() *accessory.Accessory {
 
 	err := control4.SetHAPBridgeIP(d.BaseURL)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	go control4.StartServer(light.DeviceID, light.RemoteUpdatedHandler)
 
-	return light.HAPDevice.Accessory
+	return light.HAPDevice.Accessory, nil
 }
 
-func (d *Control4Device) SetupMotionSensor() *accessory.Accessory {
+func (d *Control4Device) SetupMotionSensor() (*accessory.Accessory, error) {
 	sensor := Control4MotionSensor{*d, customAccessory.NewMotionSensor(d.hapAccessoryInfo())}
 	sensor.HAPDevice.IsInverted = true
 
@@ -105,14 +105,14 @@ func (d *Control4Device) SetupMotionSensor() *accessory.Accessory {
 
 	err := control4.SetHAPBridgeIP(d.BaseURL)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	go control4.StartServer(sensor.DeviceID, sensor.RemoteUpdatedHandler)
 
-	return sensor.HAPDevice.Accessory
+	return sensor.HAPDevice.Accessory, nil
 }
 
-func (d *Control4Device) SetupThermostat() *accessory.Accessory {
-	return nil
+func (d *Control4Device) SetupThermostat() (*accessory.Accessory, error) {
+	return nil, nil
 }

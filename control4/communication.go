@@ -8,7 +8,10 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
+
+	"github.com/tskippervold/control4-homekit/utils"
 )
 
 var outboundIP string
@@ -30,7 +33,7 @@ func SetHAPBridgeIP(deviceURL string) error {
 	return err
 }
 
-func StartServer(deviceID int, requestHandler func(w http.ResponseWriter, r *http.Request)) {
+func StartServer(deviceID int, requestHandler func(w http.ResponseWriter, r *http.Request)) error {
 	port := fmt.Sprintf(":%d", deviceID*1+10000)
 
 	mux := http.NewServeMux()
@@ -39,17 +42,17 @@ func StartServer(deviceID int, requestHandler func(w http.ResponseWriter, r *htt
 	server := &http.Server{Addr: port, Handler: mux}
 
 	go func() {
-		//fmt.Printf("Starting server for: %s on port: %s\n", d.BaseURL, port)
-
 		if err := server.ListenAndServe(); err != nil {
-			// handle err
-			fmt.Println(err)
+			utils.ReportSync(err)
+			panic(err)
 		}
 	}()
 
 	// Setting up signal capturing
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
+	signal.Notify(stop, os.Kill)
+	signal.Notify(stop, syscall.SIGTERM)
 
 	// Waiting for SIGINT (pkill -2)
 	<-stop
@@ -57,10 +60,11 @@ func StartServer(deviceID int, requestHandler func(w http.ResponseWriter, r *htt
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := server.Shutdown(ctx); err != nil {
-		fmt.Println(err)
+		return err
 	}
 
 	fmt.Printf("Server stopped on port %s\n", port)
+	return nil
 }
 
 // https://stackoverflow.com/questions/23558425/how-do-i-get-the-local-ip-address-in-go
